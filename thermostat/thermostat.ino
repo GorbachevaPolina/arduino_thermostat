@@ -9,9 +9,12 @@ const char* password = "31795777"; // пароль
 
 const int relayPin = D0;
 const int thermoPin = A0;
+const int btnPin = D1;
 
 double thermoValue = 0;
-String inputValue = "";
+bool isOn = true;
+int prevBtnState;
+String inputValue = "554";
 
 ESP8266WebServer server(80);
 
@@ -38,7 +41,9 @@ void setup() {
   Serial.begin(115200);
   // delay(100);
   pinMode(relayPin, OUTPUT);
+  pinMode(btnPin, INPUT_PULLUP);
   digitalWrite(relayPin, LOW);     
+  prevBtnState = digitalRead(btnPin);
 
   //server connection
   Serial.println("Connecting to ");
@@ -65,15 +70,18 @@ void setup() {
 
 void loop() {
   server.handleClient();
-
-  // thermoValue = analogRead(thermoPin);
-  if(thermoValue < inputValue.toFloat()) {
-    digitalWrite(relayPin, LOW);
-  } else if(thermoValue > inputValue.toFloat()) {
-    digitalWrite(relayPin, HIGH);
+  if(isOn) {
+    if(thermoValue <= inputValue.toFloat()) {
+      digitalWrite(relayPin, HIGH);
+    } else if(thermoValue > inputValue.toFloat()) {
+      digitalWrite(relayPin, LOW);
+    }
   }
-}
 
-// void handleOnConnect() {
-//   server.send(200, "text/html", "hi"); 
-// }
+  int buttonState = digitalRead(btnPin);
+  if(buttonState == LOW && prevBtnState == HIGH) {
+    isOn = !isOn;
+    digitalWrite(relayPin, isOn);
+  }
+  prevBtnState = buttonState;
+}
