@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include "page.h"
+#include "response.h"
 
 const char* ssid = "TP-Link_58B0";  // SSID
 const char* password = "31795777"; // пароль
@@ -13,8 +14,9 @@ const int btnPin = D1;
 
 double thermoValue = 0;
 bool isOn = true;
-int prevBtnState;
+int prevBtnState = 1;
 String inputValue = "554";
+bool isManuel = false;
 
 ESP8266WebServer server(80);
 
@@ -34,7 +36,21 @@ void handleThreshold() {
   if (server.arg("threshold_input") != ""){     
     inputValue = server.arg("threshold_input");    
   }
-  server.send(200, "text/html", "<meta charset='UTF-8'>" "Запрос отправлен на ESP.<br><a href=\"/\">Назад </a>"); 
+  String resPage = RESPONSE_page;
+  server.send(200, "text/html", resPage); 
+}
+
+void handleReadThreshold() {
+  server.send(200, "text/plane", inputValue);
+}
+
+void handleToggleMode() {
+  isManuel = !isManuel;
+  if(isManuel) {
+    server.send(200, "text/plane", "1");
+  } else {
+    server.send(200, "text/plane", "0");
+  }
 }
 
 void setup() {
@@ -63,6 +79,8 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/readValue", handleValue);
   server.on("/getThreshold", handleThreshold);
+  server.on("/readThreshold", handleReadThreshold);
+  server.on("/toggleMode", handleToggleMode);
   server.begin();
 
   Serial.println("HTTP server started");
@@ -70,18 +88,34 @@ void setup() {
 
 void loop() {
   server.handleClient();
-  if(isOn) {
+  // if(isOn) {
+  //   if(thermoValue <= inputValue.toFloat()) {
+  //     digitalWrite(relayPin, HIGH);
+  //   } else if(thermoValue > inputValue.toFloat()) {
+  //     digitalWrite(relayPin, LOW);
+  //   }
+  // }
+
+  // int buttonState = digitalRead(btnPin);
+  // if(buttonState == LOW && prevBtnState == HIGH) {
+  //   isOn = !isOn;
+  //   digitalWrite(relayPin, isOn);
+  // }
+  // prevBtnState = buttonState;
+  if(isManuel) {
+    int buttonState = digitalRead(btnPin);
+    if(buttonState == LOW && prevBtnState == HIGH) {
+      isOn = !isOn;
+      digitalWrite(relayPin, isOn);
+    }
+    prevBtnState = buttonState;
+  } else {
     if(thermoValue <= inputValue.toFloat()) {
       digitalWrite(relayPin, HIGH);
+      isOn = true;
     } else if(thermoValue > inputValue.toFloat()) {
       digitalWrite(relayPin, LOW);
+      isOn = false;
     }
   }
-
-  int buttonState = digitalRead(btnPin);
-  if(buttonState == LOW && prevBtnState == HIGH) {
-    isOn = !isOn;
-    digitalWrite(relayPin, isOn);
-  }
-  prevBtnState = buttonState;
 }
