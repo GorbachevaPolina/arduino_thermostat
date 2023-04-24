@@ -25,7 +25,7 @@ const int btnPin = D1;
 int thermoValue = 0;
 bool isOn = true;
 int prevBtnState = 1;
-String inputValue = "554";
+String inputValue = "25";
 bool isManuel = false;
 
 ESP8266WebServer server(80);

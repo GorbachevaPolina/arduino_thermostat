@@ -50,7 +50,7 @@ const char MAIN_page[] PROGMEM = R"=====(
   <input type="number" step="0.1" name="threshold_input" value="%THRESHOLD%" required placeholder="0"><br>
   <input type="submit" value="Save">
   </form>
-  <p class="threshold">Current threshold: <span id="thresholdValue">554</span></p>
+  <p class="threshold">Current threshold: <span id="thresholdValue">25</span></p>
   <button onClick="changeMode()" id="modeBtn">Manuel Off</button>
 </div>
 <script>
